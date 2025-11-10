@@ -1,4 +1,4 @@
-name: Deploy React Only → EC2
+name: Deploy React Only → EC2 (Zero-Downtime)
 
 on:
   push:
@@ -19,6 +19,7 @@ jobs:
           node-version: 20
           cache: npm
 
+      # ---------- FRONTEND ----------
       - name: Install frontend deps
         run: |
           cd frontend
@@ -29,23 +30,39 @@ jobs:
           cd frontend
           export NODE_OPTIONS=--openssl-legacy-provider
           npm run build
+      
+      - name: Archive build folder
+        run: tar -C frontend/build -czf build.tar.gz .
 
-      - name: Upload build to EC2
+      - name: Upload build.tar.gz to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}   # should be ubuntu
+          username: ${{ secrets.SSH_USER }}     # << ubuntu
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: "frontend/build/*"
-          target: "/var/www/myapp/front/"
+          overwrite: true
+          source: "build.tar.gz"
+          target: "/tmp/build.tar.gz"
 
-      - name: Restart nginx
+      # ---------- DEPLOY: zero downtime ----------
+      - name: Activate deployment (zero downtime)
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          username: ${{ secrets.SSH_USER }}     # << ubuntu
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            APP=/var/www/myapp
+            REL=$APP/releases
+            TS=$(date +%Y-%m-%d_%H-%M-%S)
+
+            mkdir -p $REL/$TS
+            tar -xzf /tmp/build.tar.gz -C $REL/$TS
+
+            # atomic swap
+            ln -sfn $REL/$TS $APP/current
+
+            sudo nginx -t
             sudo systemctl reload nginx
