@@ -62,14 +62,9 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           overwrite: true
-          tar: false
-          source: |
-            ${{ github.workspace }}/.variables.env
-            ${{ github.workspace }}/server.js
-            ${{ github.workspace }}/app.js
-            ${{ github.workspace }}/package.json
-            ${{ github.workspace }}/package-lock.json
+          source: "./server.js,./app.js,./package.json,./package-lock.json,./.variables.env"
           target: "/var/www/backend"
+
 
 
 
