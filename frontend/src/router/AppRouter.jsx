@@ -38,24 +38,21 @@ export default function AppRouter() {
     <Suspense fallback={<PageLoader />}>
       <AnimatePresence exitBeforeEnter initial={false}>
         <Switch location={location} key={location.pathname}>
+
+          {/* NOW NO LOGIN CHECK */}
           <PrivateRoute path="/" component={Dashboard} exact />
           <PrivateRoute component={Customer} path="/customer" exact />
-          <PrivateRoute
-            component={SelectCustomer}
-            path="/selectcustomer"
-            exact
-          />
+          <PrivateRoute component={SelectCustomer} path="/selectcustomer" exact />
           <PrivateRoute component={Lead} path="/lead" exact />
           <PrivateRoute component={Product} path="/product" exact />
           <PrivateRoute component={Admin} path="/admin" exact />
+          <Route path="/logout" component={Logout} exact />
 
-          <PrivateRoute component={Logout} path="/logout" exact />
-          <PublicRoute path="/login" render={() => <Redirect to="/" />} />
-          <Route
-            path="*"
-            component={NotFound}
-            render={() => <Redirect to="/notfound" />}
-          />
+          {/* login page → redirect to Dashboard now */}
+          <Route path="/login" component={Dashboard} />
+
+          <Route path="*" component={NotFound} />
+
         </Switch>
       </AnimatePresence>
     </Suspense>
