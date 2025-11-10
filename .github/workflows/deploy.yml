@@ -1,4 +1,4 @@
-name: Build and Deploy MERN → EC2
+name: Deploy React Only → EC2
 
 on:
   push:
@@ -19,7 +19,6 @@ jobs:
           node-version: 20
           cache: npm
 
-      # ---------- FRONTEND ----------
       - name: Install frontend deps
         run: |
           cd frontend
@@ -30,37 +29,18 @@ jobs:
           cd frontend
           export NODE_OPTIONS=--openssl-legacy-provider
           npm run build
-      
-      - name: Archive build
-        run: tar -C frontend/build -czf build.tar.gz .
 
-      - name: Upload frontend to EC2
-        uses: appleboy/scp-action@v0.1.7
+      - name: Upload build to EC2
+        uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          username: ${{ secrets.SSH_USER }}   # should be ubuntu
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          overwrite: true
-          source: "build.tar.gz"
-          target: "/tmp/build.tar.gz"
+          source: "frontend/build/*"
+          target: "/var/www/myapp/front/"
 
-
-      # ---------- BACKEND ----------
-      - name: Upload backend code to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          overwrite: true
-          source: "./server.js,./app.js,./package.json,./package-lock.json,./.variables.env,./routes,./controllers,./models,./handlers,./public,./data,./setup"
-          target: "/var/www/backend"
-
-
-      # ---------- DEPLOY ----------
-      - name: Deploy to EC2
+      - name: Restart nginx
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -68,21 +48,4 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            APP_DIR=/var/www/myapp
-            BACK_DIR=/var/www/backend
-
-            # FRONTEND
-            sudo mkdir -p $APP_DIR/build
-            sudo rm -rf $APP_DIR/build/*
-            sudo tar -xzf /tmp/build.tar.gz -C $APP_DIR/build
-            sudo rm /tmp/build.tar.gz
-
-            # BACKEND
-            cd $BACK_DIR
-            npm install --production
-
-            # PM2 start / restart
-            pm2 restart backend || pm2 start server.js --name backend
-
-            sudo nginx -t
             sudo systemctl reload nginx
