@@ -62,6 +62,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           overwrite: true
+          tar: false
           source: |
             ${{ github.workspace }}/.variables.env
             ${{ github.workspace }}/server.js
