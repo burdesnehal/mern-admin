@@ -2,7 +2,7 @@ name: Build and Deploy React → EC2
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
   workflow_dispatch:
 
 jobs:
