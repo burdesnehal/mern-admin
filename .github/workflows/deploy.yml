@@ -55,7 +55,7 @@ jobs:
         run: ls -al $GITHUB_WORKSPACE
 
       - name: Upload backend to EC2
-        uses: appleboy/scp-action@v0.1.4
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
