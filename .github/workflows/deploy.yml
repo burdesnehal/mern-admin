@@ -42,8 +42,10 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          overwrite: true
           source: "build.tar.gz"
-          target: "/tmp"
+          target: "/tmp/build.tar.gz"
+
 
       - name: Activate deployment
         uses: appleboy/ssh-action@v0.1.10
