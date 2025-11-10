@@ -63,10 +63,13 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           overwrite: true
           source: |
+            ${{ github.workspace }}/.variables.env
             ${{ github.workspace }}/server.js
+            ${{ github.workspace }}/app.js
             ${{ github.workspace }}/package.json
             ${{ github.workspace }}/package-lock.json
           target: "/var/www/backend"
+
 
 
 
